@@ -1,0 +1,76 @@
+<div class="container mt-4">
+  <!-- Back Button -->
+  <div class="mb-3">
+    <%= link_to '← Back to Projects', projects_path, class: "btn btn-outline-secondary" %>
+  </div>
+
+  <!-- Project Title & Status -->
+  <h1 class="mb-3">
+    <%= @project.name %>
+    <span class="badge badge-info"><%= @project.status.humanize %></span>
+  </h1>
+
+  <!-- Conversation History -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h2 class="mb-0">Conversation History</h2>
+    </div>
+    <div class="card-body">
+      <% if @history.any? %>
+        <ul class="list-group">
+          <% @history.each do |event| %>
+            <% if event.is_a?(Comment) %>
+              <li class="list-group-item">
+                <strong><%= event.user.name %></strong> added comment
+                "<%= event.content %>"
+                <span class="text-muted small">(<%= time_ago_in_words(event.created_at) %> ago)</span>
+              </li>
+            <% else %>
+              <li class="list-group-item">
+                <strong><%= event.user.name %></strong> changed status from
+                <strong><span class="badge badge-secondary"> <%= event.old_status.humanize %></span></strong>
+                to
+                <strong><span class="badge badge-success"> <%= event.new_status.humanize %></span></strong>
+                <span class="text-muted small">(<%= time_ago_in_words(event.created_at) %> ago)</span>
+              </li>
+            <% end %>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-muted">No conversation history yet.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Add a Comment Form -->
+  <div class="card mb-4">
+    <div class="card-header bg-success text-white">
+      <h3 class="mb-0">Add a Comment</h3>
+    </div>
+    <div class="card-body">
+      <%= form_for [@project, Comment.new], url: project_comments_path(@project), local: true, html: { class: "needs-validation" } do |form| %>
+        <div class="form-group">
+          <%= form.label :content, "Your Comment", class: "form-label" %>
+          <%= form.text_area :content, class: "form-control", rows: 3, required: true %>
+        </div>
+        <%= form.submit 'Post Comment', class: "btn btn-success" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Change Status Form -->
+  <div class="card">
+    <div class="card-header bg-warning text-dark">
+      <h3 class="mb-0">Change Status</h3>
+    </div>
+    <div class="card-body">
+      <%= form_for @project, url: project_status_histories_path(@project), method: :post, local: true do |form| %>
+        <div class="form-group">
+          <%= form.label :status, "Select New Status", class: "form-label" %>
+          <%= form.select :status, Project.statuses.keys.map { |key| [key.humanize, key] }, {}, class: "form-control" %>
+        </div>
+        <%= form.submit 'Update Status', class: "btn btn-warning text-white" %>
+      <% end %>
+    </div>
+  </div>
+</div>
